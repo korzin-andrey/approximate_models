@@ -10,8 +10,8 @@ class SeirEbcmModel():
         :G networkx graph for contact network
         '''
         self.G = G
-
-    def get_Pk(self, G):
+        
+    def get_Pk(self):
         '''
         Used in several places so that we can input a graph and then we
         can call the methods that depend on the degree distribution.
@@ -20,13 +20,12 @@ class SeirEbcmModel():
 
         :Returns dict ``Pk[k]`` is the proportion of nodes with degree ``k``.
         '''
-
-        Nk = Counter(dict(G.degree()).values())
-        Pk = {x: Nk[x]/float(G.order()) for x in Nk.keys()}
+        Nk = Counter(dict(self.G.degree()).values())
+        Pk = {x: Nk[x]/float(self.G.order()) for x in Nk.keys()}
         return Pk
 
-    @staticmethod
-    def _dSEIR_EBCM_(X, t, N, beta, alpha, gamma, PGF, PGF_prime, PGF_prime_prime):
+
+    def _dSEIR_EBCM_(self, X, t, N, beta, alpha, gamma, PGF, PGF_prime, PGF_prime_prime):
         # initial conditions
         theta = X[0]
         phi = X[1]
@@ -43,6 +42,7 @@ class SeirEbcmModel():
         R = 1 - S - E - I
         return np.array([dtheta, dphi, dpsi, dE, dI])
 
+    
     def SEIR_EBCM(self, N, rho, beta, alpha, gamma, PGF, PGF_prime, PGF_prime_prime, tmin, tmax):
         times = np.linspace(tmin, tmax, tmax+1)
         # theta_0 = 1, E_0 << 1, I_0 = rho << 1, ..., ...
@@ -57,12 +57,12 @@ class SeirEbcmModel():
         assert np.all(I) > -1
         return times, S, E, I, R
 
-    def simulate(self, G, beta, alpha, gamma, rho, tmin, tmax):
+    def simulate(self, beta=0.02, alpha=0.1, gamma=0.1, rho=0.005, tmin=0, tmax=150):
         '''
         Given network G and rho, calculates N, psihat, psihatPrime, and calls EBCM.
         '''
-        Pk = self.get_Pk(G)
-        N = G.order()
+        Pk = self.get_Pk()
+        N = self.G.order()
 
         def PGF(x):
             return sum(Pk[k]*x**k for k in Pk)

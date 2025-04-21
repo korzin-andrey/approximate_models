@@ -14,8 +14,7 @@ Typical usage example:
 
 import numpy as np
 
-
-class SEIRModelOutput:
+class SeirModelOutput:
     '''
       Stores output data for SEIR compartmental model.
 
@@ -44,9 +43,14 @@ class SEIRModelOutput:
         return padded_array
 
     def calculate_incidence(self):
-        self.incidence = [0 if index == 0 else ((self.E[index-1] - self.E[index]) -
+        self.daily_incidence = [0 if index == 0 else ((self.E[index-1] - self.E[index]) -
                                                 (self.S[index] - self.S[index-1])) for index in range(len(self.S))]
         daily_incidence_padded = self.pad_array_to_multiple_of_seven(
-            self.incidence)
+            self.daily_incidence)
         self.weekly_incidence = daily_incidence_padded.reshape(
             -1, 7).sum(axis=1)
+    
+    def calculate_rt_daily(self):
+        new_recoveries = [0 if index == 0 else (self.R[index] - self.R[index-1]) for index in range(len(self.R))]
+        self.rt = [self.incidence[index]/(new_recoveries[index]) if new_recoveries[index] != 0 else float('nan')
+                for index in range(len(self.incidence))]

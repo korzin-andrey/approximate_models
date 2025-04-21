@@ -4,11 +4,10 @@
 
 import numpy as np
 import scipy
-from model_output import SEIRModelOutput
 
 
 class SeirModel():
-    def __init__(self, population: int):
+    def __init__(self, population: int = 10**6):
         '''
         population: population size
         '''
@@ -22,7 +21,7 @@ class SeirModel():
         dRdt = gamma * I
         return dSdt, dEdt, dIdt, dRdt
 
-    def simulate(self, alpha, beta, gamma, init_inf_frac, init_rec_frac, tmax: int):
+    def simulate(self, alpha=0.1, beta=0.01, gamma=0.1, init_inf_frac=0.0005, init_rec_frac=0, tmax: int = 150):
         '''
         alpha: rate of progression from exposed to infectious
         beta: transmission rate
@@ -38,5 +37,6 @@ class SeirModel():
         t = np.linspace(0, tmax, tmax)
         S, E, I, R = scipy.integrate.odeint(self.__deriv, y0, t,
                                             args=(alpha, beta, gamma)).T * self.population
-        self.result = SEIRModelOutput(t, S, E, I, R)
-        return self.result
+        return t, S, E, I, R
+    
+    
